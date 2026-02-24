@@ -1,37 +1,76 @@
-# Wage-Simulator
-Full-stack causal inference engine for simulating wage policy impacts on municipal workforces
-
-
 # Wage Policy Impact Simulation Engine
 
-A full-stack data science application that applies causal inference methods 
-to simulate the fiscal and employment effects of wage policy decisions on 
-municipal workforces. Built with a Python/Flask REST API performing real 
-statistical computation and an interactive web dashboard for policy exploration.
+A full-stack causal inference tool for analyzing wage policy impacts on municipal workforces.
 
-## What it does
-Analysts input policy parameters (wage floor, phase-in period, sector coverage) 
-and the engine estimates causal effects using three independent methods, runs 
-Monte Carlo simulations to quantify fiscal uncertainty, and outputs confidence 
-intervals and risk scenarios across a range of assumptions. Results are displayed 
-in a live dashboard with event study charts, fiscal cost distributions, and a 
-sensitivity analysis curve across labor demand elasticity scenarios.
+## Tech Stack
 
-## Methods & Technical Implementation
-- **Difference-in-Differences (TWFE)** — Two-way fixed effects panel regression 
-  with unit and time fixed effects; standard errors clustered at the bargaining-unit 
-  level using HC sandwich estimator via statsmodels
-- **Synthetic Control** — Constrained optimization (scipy.optimize) to find donor 
-  pool weights minimizing pre-treatment MSE; inference via placebo permutation tests
-- **Propensity Score Matching** — Logistic regression PS estimation, nearest-neighbor 
-  1:1 matching, bootstrapped standard errors (200 replications)
-- **Inverse-Variance Weighted Ensemble** — Precision-weighted combination of all 
-  three estimators to minimize combined estimation error under model uncertainty
-- **Event Study Regression** — Relative-time indicators with pre-trend diagnostics 
-  to validate parallel trends assumption
-- **Monte Carlo Simulation** — Up to 5,000 parameter draws using numpy random 
-  sampling across ATT estimation error, elasticity uncertainty, and take-up rate 
-  variability to produce P5/P25/P50/P75/P95 fiscal risk quantiles
+| Layer | Technology |
+|-------|-----------|
+| Backend | Python · Flask |
+| Causal Inference | statsmodels · linearmodels |
+| Simulation | scipy · numpy |
+| Data | pandas |
+| Frontend | HTML · CSS · JavaScript · Chart.js |
 
-## Stack
-Python · Flask · statsmodels · linearmodels · scipy · numpy · pandas · Chart.js
+## Statistical Methods
+
+- **Difference-in-Differences (TWFE)** — Two-way fixed effects panel regression with clustered standard errors
+- **Synthetic Control** — Constrained optimization to find donor pool weights minimizing pre-treatment MSE; inference via placebo permutation
+- **Propensity Score Matching** — Logistic regression PS estimation, nearest-neighbor matching, bootstrap SEs (200 reps)
+- **Ensemble** — Inverse-variance weighted combination of all three estimators
+- **Event Study** — Relative-time regression with pre-trend diagnostics
+- **Monte Carlo** — 1,000–5,000 parameter draws to quantify fiscal uncertainty (P5/P25/P50/P75/P95)
+
+## Setup
+
+```bash
+# 1. Clone / download project
+cd wage_simulator
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Run the server
+python app.py
+
+# 4. Open browser
+# http://localhost:5000
+```
+
+## Project Structure
+
+```
+wage_simulator/
+├── app.py              # Flask backend — all causal inference logic
+├── requirements.txt    # Python dependencies
+├── templates/
+│   └── index.html      # Frontend dashboard
+└── README.md
+```
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | Dashboard UI |
+| `/api/simulate` | POST | Run full simulation |
+| `/api/health` | GET | Server health check |
+
+### POST /api/simulate
+
+```json
+{
+  "method": "did",
+  "wage": 18.0,
+  "phase": 3,
+  "elast": -0.20,
+  "mc": 1000,
+  "spill": 1.15,
+  "scenarios": {
+    "floor": true,
+    "phased": false,
+    "spillover": false,
+    "exempt": false
+  }
+}
+```
